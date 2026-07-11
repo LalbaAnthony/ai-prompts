@@ -33,6 +33,12 @@ La mise en forme est libre d'interprétation, mais doit respecter les principes 
 
 L'objectif est d'obtenir un document facilement lisible et **facilement modifiable ultérieurement** dans Microsoft Word.
 
+# Blocs de code et schémas Mermaid
+
+Tous les blocs de code doivent être reproduits **strictement à l'identique**, en conservant leur contenu, leur indentation et leurs retours à la ligne. Il doivent adopter un style de police à chasse fixe (par exemple Consolas ou Courier New) et une couleur de fond légèrement différente du reste du texte.
+
+Les schémas **Mermaid** ne doivent **jamais** être interprétés, rendus, convertis en image, modifiés ou reformattés. Ils doivent être recopiés exactement tels qu'ils apparaissent dans le document Markdown, comme n'importe quel autre bloc de code, sans la moindre altération.
+
 # Images
 
 Si le document Markdown contient des images, elles doivent être intégrées à leur emplacement logique lorsque cela est possible. À défaut, conserver la référence telle quelle sans modifier le reste du contenu.
@@ -41,4 +47,4 @@ Si le document Markdown contient des images, elles doivent être intégrées à 
 
 Produire un unique fichier `.docx` fidèle au document Markdown d'origine.
 
-Le succès de la tâche est évalué excluivement sur la fidélité du contenu : **la préservation intégrale du texte est prioritaire sur la mise en forme**.
+Le succès de la tâche est évalué exclusivement sur la fidélité du contenu : **la préservation intégrale du texte est prioritaire sur la mise en forme**.
