@@ -7,30 +7,30 @@ Produce a self-contained Markdown block structured as follows. It must be comple
 ## Output format
 
 ~~~markdown
-## 📸 Conversation Snapshot
+## Conversation Snapshot
 
-### 🎯 Objective
+### Objective
 <!-- One sentence: what we are building / solving. -->
 
-### 🧠 Context & Decisions Made
+### Context & Decisions Made
 <!-- Bullet list of every key decision, constraint, chosen approach, rejected alternative (with reason). -->
 
-### 📍 Current State
+### Current State
 <!-- Exact step we stopped at. What is done. What is NOT done yet. -->
 
-### 🔜 Next Action
+### Next Action
 <!-- The very next concrete step to execute. Be surgical. -->
 
-### 📦 Artifacts
+### Artifacts
 <!-- For each file / snippet produced: filename, full content or diff, purpose. -->
 
-### ⚙️ Environment & Stack
+### Environment & Stack
 <!-- Languages, frameworks, versions, OS, tooling, env vars, paths — anything non-obvious. -->
 
-### 🚧 Blockers / Open Questions
+### Blockers / Open Questions
 <!-- Unresolved issues, pending decisions, things to watch out for. -->
 
-### 📋 Resume Prompt
+### Resume Prompt
 <!-- A ready-to-paste first message for the new conversation. Must include: role/persona to adopt, objective, current state, next action. -->
 ~~~
 
