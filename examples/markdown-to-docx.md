@@ -19,6 +19,8 @@ Le texte du document Word doit être une représentation fidèle du document Mar
 
 La colorisation décrite ci-dessous est une opération **purement visuelle**. Elle ne doit jamais entraîner l'ajout, la suppression ou le déplacement du moindre caractère.
 
+Les textes `[MISSING HERE ...]` et `[MISSING ...]` sont du texte comme les autres et doivent être conservés tels quels dans le document Word.
+
 # Mise en forme
 
 La mise en forme est libre d'interprétation, mais doit respecter les principes suivants :
