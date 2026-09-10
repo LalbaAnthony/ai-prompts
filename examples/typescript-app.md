@@ -8,6 +8,7 @@
 - All user-facing output is in the asked language. All documentation is in English. All code is in English.
 - Every type or interface is declared under `src/types/` every time. It does not matter if it crosses a module boundary. Logic modules import them with `import type`.
 - When appropriate, GitHub action should reuse workflow. Reusable workflow are named as `*.inc.yml` and are included in a workflow file named `*.flow.yml` (e.g., `tests.inc.yml` is included in `tests.flow.yml`).
+- In frontend, if needed, never use <svg> elements directly in the source code. Use a dedicated library or at least a component wrapper.
 
 ---
 
