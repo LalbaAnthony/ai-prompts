@@ -21,8 +21,8 @@ const breadcrumbJsonLd = computed(() => ({
 useHead({
   script: [
     {
-      stype: "application/ld+json",
-      innerHTML: JSON.stringify(jsonLd),
+      type: "application/ld+json",
+      innerHTML: JSON.stringify(breadcrumbJsonLd),
     },
   ],
 });
