@@ -1,0 +1,167 @@
+# Mission : audit Open Graph d'un WordPress Bedrock
+
+Tu travailles sur un projet WordPress basé sur Roots Bedrock. Objectif : auditer la présence et la qualité des balises Open Graph (et Twitter Cards associées), attribuer un score, et produire un plan d'actions si le résultat est insuffisant.
+
+Le MCP Playwright (Chromium) est déjà configuré et opérationnel. Utilise-le pour le rendu navigateur. Utilise `curl` pour le HTML brut.
+
+## Contraintes
+
+- Audit en **lecture seule**. Aucune modification de code, de base de données, de plugin ou de configuration sans validation explicite.
+- Ne jamais toucher à `web/wp/` (core géré par Composer).
+- Toute commande WP-CLI doit être non destructive (`get`, `list`, `option get`, `eval` en lecture).
+- Si l'environnement local ne répond pas, t'arrêter et le signaler. Ne pas auditer une URL de production sans instruction explicite.
+
+## Phase 1 — Reconnaissance du projet
+
+1. Lire `composer.json` : lister les plugins (`wpackagist-plugin/*`, plugins premium, repos privés), le thème, les mu-plugins.
+2. Lire `.env` (sans jamais afficher les secrets) : récupérer `WP_HOME`, `WP_ENV`. `WP_HOME` est l'URL de base de l'audit.
+3. Lire `config/application.php` et `config/environments/*.php` pour tout comportement spécifique à l'environnement.
+4. Identifier les sources potentielles de balises OG :
+   - Plugins SEO : Yoast, Rank Math, SEOPress, All in One SEO, The SEO Framework, Slim SEO, Jetpack (module Publicize/OG), plugins de partage social.
+   - Thème (`web/app/themes/*`) : chercher `og:`, `property="og`, `twitter:`, `wp_head`, `wpseo_`, `rank_math/`, `seopress_`. Pour un thème Sage : inspecter `app/`, `resources/views/`, les `*.blade.php`.
+   - Mu-plugins (`web/app/mu-plugins/`).
+5. Si WP-CLI est disponible (`wp --info`, éventuellement `wp --path=web/wp`) : `wp plugin list --status=active`, `wp theme list --status=active`, `wp post-type list --public=1`, `wp taxonomy list --public=1`, et récupérer les options OG du plugin SEO actif (image par défaut, activation OG, activation Twitter Cards).
+6. Détecter les plugins de cache, de minification, de consentement cookies ou de sécurité/WAF susceptibles d'altérer le `<head>` ou de bloquer les crawlers sociaux.
+
+Livrable intermédiaire : tableau des sources OG détectées, avec risque de doublon si plusieurs sources émettent des balises.
+
+## Phase 2 — Échantillonnage des URLs
+
+Construire un échantillon représentatif, via le sitemap (`/wp-sitemap.xml`, `/sitemap_index.xml`, `/sitemap.xml`) ou WP-CLI :
+
+- Page d'accueil (et page des articles si distincte)
+- 3 articles minimum (dont le plus récent, un sans image mise en avant si possible, un avec titre long)
+- 3 pages minimum
+- 2 éléments par custom post type public
+- 1 archive de catégorie, 1 archive d'étiquette, 1 archive par taxonomie personnalisée publique
+- 1 archive auteur, 1 archive de date
+- Page de recherche (`/?s=test`), page 404
+- Pages WooCommerce si présent (boutique, produit, catégorie produit)
+- Variantes de langue si plugin multilingue (WPML, Polylang)
+
+Plafond : 40 URLs. Consigner la liste finale.
+
+## Phase 3 — Collecte
+
+Pour chaque URL, deux collectes distinctes.
+
+### A. HTML brut (ce que voient réellement les crawlers sociaux, qui n'exécutent pas le JavaScript)
+
+```bash
+curl -sL -A "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)" -o page.html -w "%{http_code} %{url_effective}\n" "<URL>"
+curl -sL -A "Twitterbot/1.0" -o page_tw.html -w "%{http_code}\n" "<URL>"
+curl -sL -A "LinkedInBot/1.0" -o page_li.html -w "%{http_code}\n" "<URL>"
+```
+
+Parser les `<meta>` du `<head>` (script Python ou Node dans un dossier temporaire hors du projet). Relever le code HTTP, les redirections, et toute page de challenge WAF ou mur de consentement.
+
+### B. DOM rendu via Playwright MCP
+
+`browser_navigate` vers l'URL, puis `browser_evaluate` avec :
+
+```js
+() => {
+  const metas = [...document.head.querySelectorAll('meta[property], meta[name]')]
+    .map(m => ({
+      key: m.getAttribute('property') || m.getAttribute('name'),
+      content: m.getAttribute('content')
+    }))
+    .filter(m => /^(og:|article:|profile:|product:|twitter:|fb:)/.test(m.key)
+      || ['description', 'robots'].includes(m.key));
+  return {
+    url: location.href,
+    title: document.title,
+    lang: document.documentElement.lang,
+    canonical: document.querySelector('link[rel="canonical"]')?.href ?? null,
+    metas,
+    duplicates: Object.entries(
+      metas.reduce((acc, m) => ((acc[m.key] = (acc[m.key] || 0) + 1), acc), {})
+    ).filter(([key, count]) => count > 1 && !['og:image', 'og:locale:alternate', 'article:tag'].includes(key))
+  };
+}
+```
+
+Comparer A et B : toute balise présente uniquement dans le DOM rendu est **invisible pour les réseaux sociaux** → défaut critique.
+
+### C. Vérification des images
+
+Pour chaque `og:image` et `twitter:image` distincte :
+
+```bash
+curl -sI -A "facebookexternalhit/1.1" "<IMAGE_URL>"
+```
+
+Puis télécharger et mesurer les dimensions réelles (Python + Pillow, ou `identify`). Relever : code HTTP, `Content-Type`, poids, largeur, hauteur, ratio.
+
+## Phase 4 — Grille d'évaluation
+
+### Défauts critiques (un seul suffit à déclencher le plan d'actions)
+
+- `og:title`, `og:type`, `og:url` ou `og:image` absent sur un type de page indexable
+- Balises OG présentes uniquement après exécution JS
+- Crawler social bloqué (403, challenge, mur de consentement dans le HTML brut)
+- `og:image` inaccessible (≠ 200), URL relative, ou `Content-Type` non image
+- Balises dupliquées avec valeurs divergentes (plusieurs sources concurrentes)
+- `og:url` pointant vers un autre domaine, un environnement de staging, ou en `http://` sur un site HTTPS
+
+### Critères de qualité par URL (score /100)
+
+| Critère                       | Poids | Règle                                                                                                                               |
+| ----------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| og:title                      | 15    | Présent, non vide, spécifique à la page, 40–90 caractères, sans entité HTML non décodée (`&#8217;`, `&amp;amp;`)                    |
+| og:description                | 15    | Présente, 100–200 caractères, spécifique à la page, pas de shortcode ni de texte tronqué brutalement                                |
+| og:image                      | 20    | Absolue, HTTPS, 200, ≥ 1200×630, ratio ≈ 1.91:1 (tolérance ±10 %), < 5 Mo, JPG/PNG/WebP                                             |
+| og:image:width / height / alt | 5     | Présents et cohérents avec l'image réelle                                                                                           |
+| og:url                        | 10    | Absolue, identique à la canonical, sans paramètres de tracking                                                                      |
+| og:type                       | 5     | Cohérent : `website` (accueil, archives), `article` (articles), `product` (produits), `profile` (auteurs)                           |
+| og:site_name                  | 5     | Présent, identique sur tout le site                                                                                                 |
+| og:locale                     | 5     | Présent, format `fr_FR`, cohérent avec `<html lang>` ; `og:locale:alternate` si multilingue                                         |
+| article:*                     | 5     | Sur les articles : `published_time`, `modified_time` au format ISO 8601 ; `author`, `section` si pertinents                         |
+| Twitter Cards                 | 10    | `twitter:card` = `summary_large_image` si image grand format ; `twitter:title`/`description`/`image` présents ou héritage OG valide |
+| Unicité                       | 5     | Titre, description et image non dupliqués à l'identique sur des pages de contenu différentes                                        |
+
+Pages exclues de la pénalité d'absence : 404, recherche, pages en `noindex` (le signaler néanmoins).
+
+### Score global
+
+- Moyenne pondérée des scores par URL, et moyenne par type de page.
+- Seuils : **≥ 85** bon, **70–84** correct avec corrections ciblées, **< 70** insuffisant.
+- Plan d'actions obligatoire si score global < 70 **ou** au moins un défaut critique **ou** un type de page complet < 60.
+
+## Phase 5 — Rapport
+
+Créer `audit/open-graph/` à la racine du projet (vérifier qu'il est ignoré par Git, sinon le signaler) contenant :
+
+1. `report.md` en français :
+   - Synthèse : score global, verdict, 3 à 5 constats majeurs
+   - Sources OG détectées et conflits
+   - Scores par type de page
+   - Tableau détaillé par URL : score, défauts, valeurs relevées
+   - Écarts HTML brut / DOM rendu
+   - Analyse des images
+   - Plan d'actions (si déclenché)
+2. `data.json` : données brutes de toutes les collectes.
+3. `screenshots/` : uniquement pour les cas anormaux (mur de consentement, page de challenge).
+
+## Phase 6 — Plan d'actions (si déclenché)
+
+Structurer par priorité :
+
+- **P0 — Bloquant** : défauts critiques. Corriger avant tout partage social.
+- **P1 — Majeur** : types de page < 70, images non conformes, absence de Twitter Cards.
+- **P2 — Optimisation** : longueurs, unicité, métadonnées secondaires.
+
+Pour chaque action : problème constaté, URLs ou types concernés, cause identifiée (fichier, plugin, option), correction proposée, effort estimé (S/M/L), méthode de vérification.
+
+Respecter les conventions Bedrock dans les corrections proposées :
+
+- Ajout de plugin : `composer require wpackagist-plugin/<slug>`, jamais d'upload manuel.
+- Code custom transverse : mu-plugin dans `web/app/mu-plugins/`, pas dans `functions.php` si la logique n'est pas liée au thème.
+- Si un plugin SEO est actif : corriger via sa configuration ou ses filtres (`wpseo_opengraph_*`, `rank_math/opengraph/*`, `seopress_social_*`, etc.) plutôt que d'ajouter une seconde source de balises.
+- Si aucun plugin SEO : recommander explicitement entre plugin dédié et mu-plugin minimal, avec justification.
+- Doublons : identifier la source à désactiver.
+- Image par défaut : format 1200×630, dans le thème ou la médiathèque, déclarée dans la config du plugin SEO.
+- Cache : inclure la purge nécessaire après correction.
+- Vérification post-correction : relancer les phases 3–4 sur les URLs concernées ; recommander le contrôle via le Facebook Sharing Debugger et le LinkedIn Post Inspector (purge du cache des plateformes).
+
+Ne rien implémenter. Présenter le plan et attendre validation.
