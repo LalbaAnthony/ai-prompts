@@ -1,0 +1,2 @@
+Dans les fichiers Markdown, ne coupe jamais un paragraphe ou un élément de liste avec des retours à la ligne manuels : chaque paragraphe tient sur une seule ligne, quelle que soit sa longueur. Seule une ligne vide sépare deux paragraphes.
+Ne reformate pas les paragraphes existants que tu ne modifies pas ; quand tu modifies un paragraphe coupé, remets-le sur une seule ligne.
