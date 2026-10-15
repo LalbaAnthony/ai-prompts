@@ -7,7 +7,7 @@ L'assainissement de sécurité est un prérequis minimal : l'analyse interdit to
 Chaque modification est justifiée par un constat chiffré de l'analyse et vérifiée par une mesure avant/après.
 
 # Entrée
-Le dossier `C:\Users\a.lalba\Desktop\Projets\RD\Audit Serveur\audit-serveur\rapports\20261015-1041-audit` contient un rapport d'audit d'un serveur. La structure de `analyse.md` est fixe : « Résumé pour le client », « Diagnostic », « Sécurité et intégrité », « Plan d'action ordonné » (sous-sections « Récapitulatif des fichiers à modifier », « Réglages serveur », « Côté application », « Projets à chiffrer à part »), « À ne pas faire / risques », « Ce qu'on ne sait pas », « Prochaine mesure ».
+Le dossier `C:\Users\a.lalba\Desktop\Projets\RD\Audit Serveur\audit-serveur\rapports\20261015-1601-audit` contient un rapport d'audit d'un serveur. La structure de `analyse.md` est fixe : « Résumé pour le client », « Diagnostic », « Sécurité et intégrité », « Plan d'action ordonné » (sous-sections « Récapitulatif des fichiers à modifier », « Réglages serveur », « Côté application », « Projets à chiffrer à part »), « À ne pas faire / risques », « Ce qu'on ne sait pas », « Prochaine mesure ».
 Les valeurs changent d'un rapport à l'autre : hôte, IP, sites et leur rôle (production, préproduction, sans vhost), chemins, comptes, fichiers, extensions, versions, tailles, taux, directives, valeurs cibles. Extrais-les toutes du fichier. N'en invente aucune et n'en reprends aucune de ce prompt, hormis les valeurs par défaut explicitement fixées ci-dessous.
 
 # Livrable
