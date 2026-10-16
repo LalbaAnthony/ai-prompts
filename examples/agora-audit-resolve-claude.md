@@ -10,7 +10,7 @@ Au moindre doute non tranché par ce prompt, tu t'arrêtes et tu me poses la que
 
 # Entrées
 
-Extrais l'archive dans le répertoire de travail. Structure fixe :
+Utilise `C:\Users\a.lalba\Desktop\Projets\RD\Audit Serveur\audit-serveur\rapports\<DATE>-audit`. Structure fixe :
 
 - `statuts.tsv` : un hôte par ligne (`dossier`, `client`, `IP`, `code retour`, `durée`, `détail`). **Seuls les hôtes de code retour 0 sont traités.**
 - `index.md`, `parc.csv`, `leviers.csv`, `leviers-par-type.csv`, `resume-clients.md` : vues consolidées. La section « Accès à fournir » de `resume-clients.md` concerne des hôtes non audités : ignore-la.
