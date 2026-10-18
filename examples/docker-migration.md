@@ -9,6 +9,8 @@ Pour chaque service qui doit utiliser `Dockerfile`, créer un fichier `Dockerfil
 Les deux `Dockerfile.*` doivent être utilisés dans le `docker-compose.yml` avec différents profiles et services.
 
 Ne met JAMAIS de valeurs par défaut dans les fichiers de configuration Docker: jamais `${PORT:-3000}` mais `${PORT}`
+Les valeurs en dure sont OK
+Les valeurs reprise depuis l'environnement sont OK
 
 Prend autant d'initiative que necessaire
 
