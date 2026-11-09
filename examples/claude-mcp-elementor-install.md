@@ -21,3 +21,4 @@ Please:
 3. Save the file
 4. Restart Claude Code if needed
 5. Test the connection to ensure the MCP server is correctly configured
+6. Write in `CLAUDE.md` that this MCP exists and you can use it
