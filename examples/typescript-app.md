@@ -3,7 +3,7 @@
 - TypeScript 6.x, strict. No `any`, no `as` casts except at the raw-JSON validation boundary, no `@ts-expect-error`.
 - ESM only. `"type": "module"`. Node >= 22.
 - **Zero comments in source code.** No `//`, no `/* */`, no JSDoc, anywhere under `src/` or `tests/`. All explanation lives in `docs/`. Code must be self-documenting through naming.
-- **No emoji anywhere** — not in source, not in CLI output, not in docs, not in commit messages, not in the README. Weather conditions are rendered as text labels only.
+- **No emoji anywhere** — not in source, not in CLI output, not in docs, not in commit messages, not in the README.
 - No em dash (`—`) anywhere in the repository. Use common hyphen (`-`) or comma (`,`) instead.
 - All user-facing output is in the asked language. All documentation is in English. All code is in English.
 - Every type or interface is declared under `src/types/` every time. It does not matter if it crosses a module boundary. Logic modules import them with `import type`.
